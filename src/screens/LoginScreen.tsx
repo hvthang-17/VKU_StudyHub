@@ -76,8 +76,6 @@ export default function LoginScreen({ navigation }: Props) {
             )}
           </TouchableOpacity>
 
-          <View style={st.divider}><View style={st.dividerLine} /><Text style={st.dividerTxt}>hoặc</Text><View style={st.dividerLine} /></View>
-
         </View>
 
         <View style={st.footer}>

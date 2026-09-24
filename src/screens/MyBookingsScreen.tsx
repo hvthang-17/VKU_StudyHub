@@ -33,8 +33,9 @@ export default function MyBookingsScreen() {
 
     const unsubscribe = bookingService.subscribeUserBookings(
       user.id,
-      (fetchedBookings) => {
-        setBookings(fetchedBookings);
+      async (fetchedBookings) => {
+        const processedBookings = await bookingService.autoCancelExpiredBookings(fetchedBookings);
+        setBookings(processedBookings);
       }
     );
 
@@ -76,9 +77,13 @@ export default function MyBookingsScreen() {
     );
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 600);
+    if (user?.id) {
+      const updated = await bookingService.autoCancelExpiredBookings(bookings);
+      setBookings(updated);
+    }
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   const handleScanQr = async (qrValue: string) => {
@@ -89,19 +94,21 @@ export default function MyBookingsScreen() {
 
     setIsCheckingIn(true);
     try {
-      const checkedInBooking = await bookingService.checkInWithQr(qrValue, user.id);
+      const checkedInBooking = await bookingService.checkInWithQr(qrValue, user.id, user.role);
       updateBooking(checkedInBooking.id, {
         status: 'checked-in',
         checkedInAt: checkedInBooking.checkedInAt,
       });
       setScannerVisible(false);
-      Alert.alert('Checked in!', `Bạn đã check-in thành công phòng ${checkedInBooking.roomName}.`);
+      Alert.alert('Check-in thành công!', `Đã xác nhận check-in cho sinh viên ${checkedInBooking.userName} tại phòng ${checkedInBooking.roomName}.`);
     } catch (e: any) {
       Alert.alert('Không thể check-in', e.message || 'Vui lòng thử quét lại mã QR.');
     } finally {
       setIsCheckingIn(false);
     }
   };
+
+  const isAdmin = user?.role === 'admin';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -112,15 +119,17 @@ export default function MyBookingsScreen() {
           <Text style={styles.title}>Lịch Đặt Phòng Của Tôi</Text>
         </View>
         <Text style={styles.subtitle}>
-          Quản lý ca học & mã QR check-in vào phòng
+          {isAdmin ? 'Quản lý phòng học & quét QR check-in cho sinh viên' : 'Quản lý ca học & xuất trình mã QR check-in'}
         </Text>
       </View>
 
-      {/* Segmented Tab Switcher */}
-      <TouchableOpacity style={styles.scanBtn} activeOpacity={0.8} onPress={() => setScannerVisible(true)}>
-        <Ionicons name="scan-outline" size={18} color="#FFFFFF" />
-        <Text style={styles.scanBtnText}>Scan to Check-in</Text>
-      </TouchableOpacity>
+      {/* Admin QR Scanner Button */}
+      {isAdmin && (
+        <TouchableOpacity style={styles.scanBtn} activeOpacity={0.8} onPress={() => setScannerVisible(true)}>
+          <Ionicons name="scan-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.scanBtnText}>Quét QR Check-in Sinh Viên (QTV)</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.tabContainer}>
         <TouchableOpacity

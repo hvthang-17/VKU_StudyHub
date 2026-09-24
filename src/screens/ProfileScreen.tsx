@@ -7,8 +7,17 @@ import { authService } from '../services/authService';
 
 export default function ProfileScreen() {
   const user = useBookingStore((s) => s.user);
+  const bookings = useBookingStore((s) => s.bookings);
   const setUser = useBookingStore((s) => s.setUser);
   const clearStore = useBookingStore((s) => s.clearStore);
+
+  const stats = React.useMemo(() => {
+    const total = bookings.length;
+    const active = bookings.filter((b) => b.status === 'active').length;
+    const checkedInOrCompleted = bookings.filter((b) => b.status === 'checked-in' || b.status === 'completed').length;
+    const cancelled = bookings.filter((b) => b.status === 'cancelled').length;
+    return { total, active, checkedInOrCompleted, cancelled };
+  }, [bookings]);
 
   const handleLogout = () => {
     Alert.alert(
@@ -48,6 +57,33 @@ export default function ProfileScreen() {
             <Ionicons name="school-outline" size={14} color={COLORS.primary} />
           )}
           <Text style={st.roleTxt}>{user?.role === 'admin' ? 'QTV Quản lý' : 'Sinh viên VKU'}</Text>
+        </View>
+      </View>
+
+      {/* Booking Statistics Section */}
+      <View style={st.infoSection}>
+        <View style={st.sectionTitleRow}>
+          <Ionicons name="stats-chart-outline" size={20} color={COLORS.primary} />
+          <Text style={st.sectionTitle}>Thống kê đặt phòng</Text>
+        </View>
+
+        <View style={st.statsGrid}>
+          <View style={st.statCard}>
+            <Text style={[st.statValue, { color: COLORS.primary }]}>{stats.total}</Text>
+            <Text style={st.statLabel}>Tổng ca đặt</Text>
+          </View>
+          <View style={st.statCard}>
+            <Text style={[st.statValue, { color: COLORS.success }]}>{stats.checkedInOrCompleted}</Text>
+            <Text style={st.statLabel}>Đã nhận phòng</Text>
+          </View>
+          <View style={st.statCard}>
+            <Text style={[st.statValue, { color: '#D97706' }]}>{stats.active}</Text>
+            <Text style={st.statLabel}>Chờ check-in</Text>
+          </View>
+          <View style={st.statCard}>
+            <Text style={[st.statValue, { color: COLORS.danger }]}>{stats.cancelled}</Text>
+            <Text style={st.statLabel}>Đã hủy / No-show</Text>
+          </View>
         </View>
       </View>
 
@@ -122,6 +158,30 @@ const st = StyleSheet.create({
   },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   sectionTitle: { fontSize: 17, fontWeight: '800', color: COLORS.text },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  statCard: {
+    width: '48%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLORS.gray600,
+    fontWeight: '600',
+  },
   infoRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   infoIconWrap: {
     width: 38, height: 38, borderRadius: 12, backgroundColor: '#EFF6FF',

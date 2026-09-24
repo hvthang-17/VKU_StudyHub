@@ -118,8 +118,9 @@ export default function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />}
         initialNumToRender={6}
-        maxToRenderPerBatch={8}
-        windowSize={5}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        updateCellsBatchingPeriod={50}
         removeClippedSubviews={true}
       />
     </SafeAreaView>

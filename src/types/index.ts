@@ -76,6 +76,8 @@ export interface Booking {
   createdAt: string;      // ISO timestamp
   checkedInAt?: string;   // ISO timestamp (set on check-in)
   notificationId?: string; // expo-notifications scheduled ID
+  cancelReason?: string;   // Reason if cancelled (e.g. "Quá thời hạn check-in (15 phút)")
+  updatedAt?: string;      // ISO timestamp
 }
 
 // ============================================================

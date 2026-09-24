@@ -56,7 +56,7 @@ export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({
             badgeBg = '#FEE2E2';
             badgeColor = '#DC2626';
           } else if (isSelected) {
-            badgeText = '✓ Đã chọn';
+            badgeText = 'Đã chọn';
             badgeBg = '#DBEAFE';
             badgeColor = '#1D4ED8';
           }

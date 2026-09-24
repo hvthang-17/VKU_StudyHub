@@ -12,7 +12,7 @@ import {
 import { db } from '../../firebaseConfig';
 import { Booking, TimeSlot } from '../types';
 import { TIME_SLOTS } from '../constants';
-import { generateBookingId, isPastBookingSlot, isWithinCheckInWindow } from '../utils/helpers';
+import { generateBookingId, isPastBookingSlot, isWithinCheckInWindow, hasCheckInExpired } from '../utils/helpers';
 import { notificationService } from './notificationService';
 import { parseBookingQrPayload } from '../utils/qrHelpers';
 
@@ -225,6 +225,7 @@ export const bookingService = {
       });
 
       const notificationId = await notificationService.scheduleBookingReminder(newBooking);
+      await notificationService.scheduleNoShowWarning(newBooking);
       if (notificationId) {
         newBooking.notificationId = notificationId;
         await updateDoc(doc(db, 'bookings', bookingId), { notificationId });
@@ -270,8 +271,9 @@ export const bookingService = {
 
   /**
    * Check in a booking from a scanned QR payload.
+   * Admins can scan any student's QR code. Students present their QR code to admins.
    */
-  checkInWithQr: async (qrValue: string, scannerUserId?: string): Promise<Booking> => {
+  checkInWithQr: async (qrValue: string, scannerUserId?: string, scannerRole?: string): Promise<Booking> => {
     const payload = parseBookingQrPayload(qrValue);
     if (!payload) {
       throw new Error('Mã QR không hợp lệ hoặc không thuộc VKU StudyHub.');
@@ -288,8 +290,10 @@ export const bookingService = {
     }
 
     const booking = bookingSnap.data() as Booking;
-    if (scannerUserId && booking.userId !== scannerUserId) {
-      throw new Error('Bạn chỉ có thể check-in booking của chính mình.');
+
+    // Business rule: Only admin can scan QR codes to check in students, OR if student is allowed, it must be their own booking
+    if (scannerRole !== 'admin' && scannerUserId && booking.userId !== scannerUserId) {
+      throw new Error('Chỉ Admin/Quản lý phòng mới có quyền quét mã QR check-in.');
     }
 
     if (booking.roomId !== payload.roomId || booking.userId !== payload.userId) {
@@ -303,7 +307,7 @@ export const bookingService = {
     if (booking.status !== 'active') {
       throw new Error('Booking này không còn ở trạng thái có thể check-in.');
     }
-    // dùng 1440 để test
+
     if (!isWithinCheckInWindow(booking.date, booking.startTime, 15)) {
       throw new Error('Chỉ được check-in trong khoảng 15 phút trước/sau giờ bắt đầu ca học.');
     }
@@ -316,6 +320,58 @@ export const bookingService = {
     });
 
     return { ...booking, status: 'checked-in', checkedInAt };
+  },
+
+  /**
+   * Scan active bookings and auto-cancel any booking that passed 15 minutes after start time without check-in.
+   * Updates Firestore status, releases slot_locks, and triggers immediate no-show notification.
+   */
+  autoCancelExpiredBookings: async (bookings: Booking[]): Promise<Booking[]> => {
+    let hasChanges = false;
+    const updatedBookings = await Promise.all(
+      bookings.map(async (booking) => {
+        if (booking.status === 'active' && hasCheckInExpired(booking.date, booking.startTime, 15)) {
+          hasChanges = true;
+          const cancelledBooking: Booking = {
+            ...booking,
+            status: 'cancelled',
+            updatedAt: new Date().toISOString(),
+          };
+
+          if (db) {
+            try {
+              // Update booking status in Firestore
+              await updateDoc(doc(db, 'bookings', booking.id), {
+                status: 'cancelled',
+                updatedAt: new Date().toISOString(),
+                cancelReason: 'Quá thời hạn check-in (15 phút)',
+              });
+
+              // Release slot lock in Firestore
+              const slotLockRef = doc(
+                db,
+                'slot_locks',
+                `${booking.roomId}_${booking.date}_${booking.startTime.replace(':', '')}`
+              );
+              await updateDoc(slotLockRef, {
+                status: 'cancelled',
+                cancelledAt: new Date().toISOString(),
+              });
+            } catch (e: any) {
+              console.warn('[bookingService] autoCancelExpiredBookings Firestore notice:', e.message);
+            }
+          }
+
+          // Trigger instant no-show push notification
+          await notificationService.sendNoShowInstantNotification(booking);
+
+          return cancelledBooking;
+        }
+        return booking;
+      })
+    );
+
+    return updatedBookings;
   },
 };
 

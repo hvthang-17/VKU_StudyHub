@@ -72,6 +72,14 @@ export const BookingCard: React.FC<BookingCardProps> = React.memo(({ booking, on
         </View>
       </View>
 
+      {/* Cancel Reason Warning (if any) */}
+      {booking.status === 'cancelled' && booking.cancelReason && (
+        <View style={styles.reasonRow}>
+          <Ionicons name="alert-circle-outline" size={14} color="#DC2626" />
+          <Text style={styles.reasonText}>{booking.cancelReason}</Text>
+        </View>
+      )}
+
       {/* Action Bar */}
       {(canCancel || (booking.status === 'checked-in' && onShowQr)) && (
         <View style={styles.actionRow}>
@@ -180,6 +188,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.text,
+  },
+  reasonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  reasonText: {
+    fontSize: 12,
+    color: '#DC2626',
+    fontWeight: '500',
   },
   actionRow: {
     marginTop: 14,

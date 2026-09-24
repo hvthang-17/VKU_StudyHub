@@ -95,6 +95,21 @@ export const isWithinCheckInWindow = (
 };
 
 /**
+ * Check if the check-in window (15 mins after slot startTime) has expired.
+ * Example: slotStart 09:30, 15m window => expired after 09:45.
+ */
+export const hasCheckInExpired = (
+  dateStr: string,
+  startTime: string,
+  windowMinutes: number = 15
+): boolean => {
+  const slotStart = parseTime(dateStr, startTime);
+  const now = new Date();
+  const windowEnd = new Date(slotStart.getTime() + windowMinutes * 60000);
+  return now > windowEnd;
+};
+
+/**
  * Check if a date string is today.
  */
 export const isToday = (date: Date): boolean => {

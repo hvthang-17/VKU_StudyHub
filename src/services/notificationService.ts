@@ -47,6 +47,7 @@ export const notificationService = {
       return undefined;
     }
 
+    // Schedule 15-min pre-slot reminder
     return Notifications.scheduleNotificationAsync({
       content: {
         title: '⏰ Sắp đến giờ học',
@@ -59,6 +60,47 @@ export const notificationService = {
         date: reminderAt,
         channelId: REMINDER_CHANNEL_ID,
       },
+    });
+  },
+
+  scheduleNoShowWarning: async (booking: Booking): Promise<string | undefined> => {
+    const granted = await notificationService.requestPermissions();
+    if (!granted) return undefined;
+
+    const slotStart = parseTime(booking.date, booking.startTime);
+    const noShowAt = new Date(slotStart.getTime() + 15 * 60 * 1000); // 15 mins after startTime
+
+    if (noShowAt.getTime() <= Date.now()) {
+      return undefined;
+    }
+
+    return Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Đã quá giờ check-in',
+        body: `Ca đặt phòng ${booking.roomName} (${booking.startTime} - ${booking.endTime}) ngày ${booking.date} đã bị HỦY TỰ ĐỘNG do quá thời hạn check-in 15 phút.`,
+        data: { bookingId: booking.id, type: 'no-show' },
+        sound: 'default',
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: noShowAt,
+        channelId: REMINDER_CHANNEL_ID,
+      },
+    });
+  },
+
+  sendNoShowInstantNotification: async (booking: Booking): Promise<void> => {
+    const granted = await notificationService.requestPermissions();
+    if (!granted) return;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Thông báo Hủy Đặt Phòng',
+        body: `Ca đặt phòng ${booking.roomName} (${booking.startTime} - ${booking.endTime}) ngày ${booking.date} đã bị HỦY TỰ ĐỘNG do quá thời hạn check-in 15 phút.`,
+        data: { bookingId: booking.id, type: 'no-show' },
+        sound: 'default',
+      },
+      trigger: null, // Send immediately
     });
   },
 

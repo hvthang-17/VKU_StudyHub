@@ -4,31 +4,31 @@ VKU StudyHub là ứng dụng di động thông minh hỗ trợ sinh viên VKU t
 
 ---
 
-## 🎯 Mục tiêu dự án
+## Mục tiêu dự án
 
 Dự án giúp số hóa toàn bộ quy trình đặt phòng học tự học, phòng lab hoặc không gian học nhóm trong khuôn viên Trường Đại học CNTT & TT Việt - Hàn (VKU). Sinh viên có thể xem danh sách phòng học thời gian thực, lọc phòng theo nhu cầu, đặt khung giờ phù hợp, nhận mã QR xuất trình và theo dõi lịch học cá nhân.
 
 ---
 
-## ✨ Tính năng chính
+## Tính năng chính
 
-### 🔐 1. Xác thực & Phân quyền Người dùng (Auth & RBAC)
+### 1. Xác thực & Phân quyền Người dùng (Auth & RBAC)
 - **Đăng nhập & Đăng ký sinh viên/admin:** Đăng nhập qua Email VKU, quản lý phiên làm việc bền vững.
 - **Phân quyền nghiệp vụ (Role-based Access Control):**
   - **Sinh viên (`student`):** Xuất trình mã QR Ticket trên điện thoại cho QTV check-in. Giao diện ẩn nút camera quét QR để ngăn chặn check-in từ xa gian lận.
   - **Quản trị viên / QTV (`admin`):** Được cấp quyền bật Camera/Thư viện ảnh quét mã QR check-in cho sinh viên tại phòng học.
 
-### 🔍 2. Tìm kiếm & Lọc Phòng học Quy mô 60+ Phòng
+### 2. Tìm kiếm & Lọc Phòng học Quy mô 60+ Phòng
 - **Danh sách 64+ phòng học & lab:** Tòa A, B, C, V từ Tầng 1 ➔ 4.
 - **Bộ lọc đa tiêu chí (AND Logic):** Lọc Tòa nhà, Sức chứa, Thiết bị và Lọc phòng yêu thích (Favorites toggle).
 - **Tối ưu hiệu năng FlatList:** Render mượt ở tốc độ **60 FPS**, loại bỏ hoàn toàn lag khi cuộn hoặc lọc liên tục.
 
-### 📅 3. Đặt Phòng & Kiểm tra Xung đột Lịch
+### 3. Đặt Phòng & Kiểm tra Xung đột Lịch
 - **Khung giờ cố định 2 tiếng/ca:** `07:30–09:30`, `09:30–11:30`, `13:00–15:00`, `15:00–17:00`.
 - **Trạng thái từng ca học:** Sẵn sàng, Đã có người đặt, Trùng lịch cá nhân, Đã quá giờ đặt.
 - **Chống đặt trùng tuyệt đối (Race Condition Protection):** Sử dụng Firestore Transaction & Lock Document `slot_locks`.
 
-### 🎟️ 4. QR Booking Pass & Quy trình Check-in
+### 4. QR Booking Pass & Quy trình Check-in
 - **Sinh viên xuất trình QR Pass:** Tạo mã QR duy nhất mã hóa thông tin Booking ID, Room ID, User ID.
 - **QTV quét mã Check-in:** QTV dùng tính năng **Quét QR** để quét mã của sinh viên trong khoảng 15 phút quanh giờ bắt đầu ca.
 - **Tự động Hủy ca Quá giờ Check-in 15 phút (Auto No-Show Cancellation):**
@@ -36,10 +36,10 @@ Dự án giúp số hóa toàn bộ quy trình đặt phòng học tự học, p
   - **Tự động giải phóng khóa slot trên Firestore (`slot_locks`)**, đưa phòng học về trạng thái **Sẵn sàng** cho người khác sử dụng.
   - Gửi Push Notification báo lý do hủy ca cho sinh viên.
 
-### 📊 5. Trang Cá nhân & Thống kê Đặt phòng (Profile & Stats)
+### 5. Trang Cá nhân & Thống kê Đặt phòng (Profile & Stats)
 - Hiển thị thông tin sinh viên, badge phân quyền và **Lưới thống kê thời gian thực** (Tổng ca, Đã nhận phòng, Chờ check-in, Đã hủy).
 
-### 🔔 6. Nhắc lịch & Thông báo Local Notifications
+### 6. Nhắc lịch & Thông báo Local Notifications
 - Lên lịch nhắc 15 phút trước giờ học và gửi thông báo tức thì khi ca bị hủy do no-show.
 
 ## Công nghệ sử dụng
@@ -56,7 +56,7 @@ Dự án giúp số hóa toàn bộ quy trình đặt phòng học tự học, p
 - Expo Notifications cho thông báo local.
 - react-native-qrcode-svg để tạo mã QR.
 
-## 📂 Cấu trúc thư mục
+## Cấu trúc thư mục
 
 ```text
 VKU_StudyHub/

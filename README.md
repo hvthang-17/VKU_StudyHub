@@ -1,72 +1,46 @@
 # VKU StudyHub
 
-VKU StudyHub là ứng dụng di động hỗ trợ sinh viên VKU tìm kiếm, đặt phòng học/phòng lab và quản lý lịch đặt phòng một cách thuận tiện. Ứng dụng được xây dựng bằng Expo React Native, TypeScript và Firebase.
+VKU StudyHub là ứng dụng di động thông minh hỗ trợ sinh viên VKU tìm kiếm, đặt phòng học/phòng lab và quản lý lịch đặt phòng một cách thuận tiện. Ứng dụng được xây dựng bằng **Expo React Native**, **TypeScript**, **Zustand** và **Firebase Cloud Firestore**.
 
-## Mục tiêu dự án
+---
 
-Dự án giúp số hóa quy trình đặt phòng học tự học, phòng lab hoặc không gian học nhóm trong trường. Sinh viên có thể xem danh sách phòng, lọc theo nhu cầu, chọn ngày và khung giờ phù hợp, nhận mã QR sau khi đặt thành công và dùng QR để check-in.
+## 🎯 Mục tiêu dự án
 
-## Tính năng chính
+Dự án giúp số hóa toàn bộ quy trình đặt phòng học tự học, phòng lab hoặc không gian học nhóm trong khuôn viên Trường Đại học CNTT & TT Việt - Hàn (VKU). Sinh viên có thể xem danh sách phòng học thời gian thực, lọc phòng theo nhu cầu, đặt khung giờ phù hợp, nhận mã QR xuất trình và theo dõi lịch học cá nhân.
 
-### Xác thực người dùng
+---
 
-- Đăng nhập sinh viên.
-- Đăng ký tài khoản sinh viên.
-- Quản lý thông tin người dùng trong ứng dụng.
+## ✨ Tính năng chính
 
-### Tìm kiếm và lọc phòng
+### 🔐 1. Xác thực & Phân quyền Người dùng (Auth & RBAC)
+- **Đăng nhập & Đăng ký sinh viên/admin:** Đăng nhập qua Email VKU, quản lý phiên làm việc bền vững.
+- **Phân quyền nghiệp vụ (Role-based Access Control):**
+  - **Sinh viên (`student`):** Xuất trình mã QR Ticket trên điện thoại cho QTV check-in. Giao diện ẩn nút camera quét QR để ngăn chặn check-in từ xa gian lận.
+  - **Quản trị viên / QTV (`admin`):** Được cấp quyền bật Camera/Thư viện ảnh quét mã QR check-in cho sinh viên tại phòng học.
 
-- Xem danh sách phòng học/phòng lab.
-- Tìm kiếm theo tên phòng.
-- Lọc theo tòa nhà.
-- Lọc theo sức chứa.
-- Lọc theo thiết bị hỗ trợ như máy chiếu, bảng trắng, máy tính cấu hình cao, điều hòa.
-- Xem chi tiết phòng trước khi đặt.
+### 🔍 2. Tìm kiếm & Lọc Phòng học Quy mô 60+ Phòng
+- **Danh sách 64+ phòng học & lab:** Tòa A, B, C, V từ Tầng 1 ➔ 4.
+- **Bộ lọc đa tiêu chí (AND Logic):** Lọc Tòa nhà, Sức chứa, Thiết bị và Lọc phòng yêu thích (Favorites toggle).
+- **Tối ưu hiệu năng FlatList:** Render mượt ở tốc độ **60 FPS**, loại bỏ hoàn toàn lag khi cuộn hoặc lọc liên tục.
 
-### Đặt phòng theo ngày và khung giờ
+### 📅 3. Đặt Phòng & Kiểm tra Xung đột Lịch
+- **Khung giờ cố định 2 tiếng/ca:** `07:30–09:30`, `09:30–11:30`, `13:00–15:00`, `15:00–17:00`.
+- **Trạng thái từng ca học:** Sẵn sàng, Đã có người đặt, Trùng lịch cá nhân, Đã quá giờ đặt.
+- **Chống đặt trùng tuyệt đối (Race Condition Protection):** Sử dụng Firestore Transaction & Lock Document `slot_locks`.
 
-- Chọn ngày đặt trong các ngày được hỗ trợ.
-- Chọn khung giờ cố định 2 tiếng/ca:
-  - 07:30 – 09:30
-  - 09:30 – 11:30
-  - 13:00 – 15:00
-  - 15:00 – 17:00
-- Hiển thị trạng thái khung giờ:
-  - Sẵn sàng.
-  - Đã có người đặt.
-  - Trùng lịch cá nhân.
-  - Đã quá giờ đặt.
-- Không cho đặt các slot cùng ngày đã bắt đầu hoặc đã qua.
-- Kiểm tra xung đột lịch của chính người dùng.
-- Sử dụng Firestore transaction/slot lock để hạn chế race condition khi nhiều người đặt cùng lúc.
+### 🎟️ 4. QR Booking Pass & Quy trình Check-in
+- **Sinh viên xuất trình QR Pass:** Tạo mã QR duy nhất mã hóa thông tin Booking ID, Room ID, User ID.
+- **QTV quét mã Check-in:** QTV dùng tính năng **Quét QR** để quét mã của sinh viên trong khoảng 15 phút quanh giờ bắt đầu ca.
+- **Tự động Hủy ca Quá giờ Check-in 15 phút (Auto No-Show Cancellation):**
+  - Ca không được check-in đúng giờ sẽ bị hủy tự động kèm lý do *"Quá thời hạn check-in (15 phút)"*.
+  - **Tự động giải phóng khóa slot trên Firestore (`slot_locks`)**, đưa phòng học về trạng thái **Sẵn sàng** cho người khác sử dụng.
+  - Gửi Push Notification báo lý do hủy ca cho sinh viên.
 
-### Quản lý đặt phòng
+### 📊 5. Trang Cá nhân & Thống kê Đặt phòng (Profile & Stats)
+- Hiển thị thông tin sinh viên, badge phân quyền và **Lưới thống kê thời gian thực** (Tổng ca, Đã nhận phòng, Chờ check-in, Đã hủy).
 
-- Xem danh sách các booking của người dùng.
-- Hủy booking đang hoạt động.
-- Hiển thị trạng thái booking:
-  - Active.
-  - Checked-in.
-  - Completed.
-  - Cancelled.
-
-### QR booking pass và check-in
-
-- Tạo QR pass sau khi đặt phòng thành công.
-- Xem lại QR của booking trong màn hình đặt phòng của tôi.
-- Quét QR bằng camera để check-in.
-- Hỗ trợ chọn ảnh QR từ thư viện để quét.
-- Kiểm tra hợp lệ khi check-in:
-  - Booking tồn tại.
-  - Đúng người dùng.
-  - Đúng phòng.
-  - Booking còn active.
-  - Check-in trong khoảng thời gian cho phép quanh giờ bắt đầu slot.
-
-### Thông báo nhắc lịch
-
-- Lên lịch thông báo local trước giờ bắt đầu slot 15 phút.
-- Hủy thông báo nhắc lịch khi booking bị hủy.
+### 🔔 6. Nhắc lịch & Thông báo Local Notifications
+- Lên lịch nhắc 15 phút trước giờ học và gửi thông báo tức thì khi ca bị hủy do no-show.
 
 ## Công nghệ sử dụng
 
@@ -82,38 +56,43 @@ Dự án giúp số hóa quy trình đặt phòng học tự học, phòng lab h
 - Expo Notifications cho thông báo local.
 - react-native-qrcode-svg để tạo mã QR.
 
-## Cấu trúc thư mục
+## 📂 Cấu trúc thư mục
 
 ```text
-src/
-├── components/          # Component tái sử dụng trong UI
-│   ├── BookingCard.tsx
-│   ├── DateSelector.tsx
-│   ├── FilterChips.tsx
-│   ├── QRModal.tsx
-│   ├── QRScanner.tsx
-│   ├── RoomCard.tsx
-│   ├── SearchBar.tsx
-│   └── TimeSlotGrid.tsx
-├── constants/           # Hằng số màu sắc, khung giờ, filter option
-├── navigation/          # Cấu hình điều hướng app
-├── screens/             # Các màn hình chính
-│   ├── BookingScreen.tsx
-│   ├── HomeScreen.tsx
-│   ├── LoginScreen.tsx
-│   ├── MyBookingsScreen.tsx
-│   ├── ProfileScreen.tsx
-│   ├── RegisterScreen.tsx
-│   └── RoomDetailScreen.tsx
-├── scripts/             # Script seed data và test concurrency
-├── services/            # Xử lý nghiệp vụ và giao tiếp Firebase
-│   ├── authService.ts
-│   ├── bookingService.ts
-│   ├── notificationService.ts
-│   └── roomService.ts
-├── store/               # Zustand store
-├── types/               # TypeScript type definitions
-└── utils/               # Helper xử lý ngày giờ và QR
+VKU_StudyHub/
+├── firestore.rules      # Quy tắc bảo mật phân quyền Firestore (RBAC)
+├── firebaseConfig.ts    # Khởi tạo kết nối Firebase App, Auth & Firestore
+├── scripts/             # Scripts hỗ trợ (Seed 64 phòng, test concurrency)
+│   ├── seedFirestore.js
+│   └── testConcurrency.js
+├── src/
+│   ├── components/      # Component UI tái sử dụng (@expo/vector-icons, memo)
+│   │   ├── BookingCard.tsx
+│   │   ├── DateSelector.tsx
+│   │   ├── FilterChips.tsx
+│   │   ├── QRModal.tsx
+│   │   ├── QRScanner.tsx
+│   │   ├── RoomCard.tsx
+│   │   ├── SearchBar.tsx
+│   │   └── TimeSlotGrid.tsx
+│   ├── constants/       # Hằng số màu sắc, khung giờ, filter option
+│   ├── navigation/      # Cấu hình AppNavigator & TabNavigator
+│   ├── screens/         # Các màn hình chính
+│   │   ├── BookingScreen.tsx
+│   │   ├── HomeScreen.tsx
+│   │   ├── LoginScreen.tsx
+│   │   ├── MyBookingsScreen.tsx
+│   │   ├── ProfileScreen.tsx
+│   │   ├── RegisterScreen.tsx
+│   │   └── RoomDetailScreen.tsx
+│   ├── services/        # Service nghiệp vụ & giao tiếp Firebase
+│   │   ├── authService.ts
+│   │   ├── bookingService.ts
+│   │   ├── notificationService.ts
+│   │   └── roomService.ts
+│   ├── store/           # Zustand global state store
+│   ├── types/           # TypeScript interfaces & types
+│   └── utils/           # Utility xử lý ngày giờ, QR payload, format
 ```
 
 ## Yêu cầu môi trường
@@ -229,6 +208,3 @@ Các ngày tương lai không bị ảnh hưởng bởi kiểm tra này.
 - Khi thay đổi logic booking, nên chạy `npm run test:concurrent` để đảm bảo không phá vỡ cơ chế chống đặt trùng.
 - Không nên chỉ chặn booking ở UI; các rule quan trọng cần được kiểm tra thêm trong service.
 
-## Tác giả
-
-VKU StudyHub được phát triển cho mục đích học tập và mô phỏng hệ thống đặt phòng học thông minh cho sinh viên VKU.

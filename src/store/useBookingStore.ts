@@ -113,12 +113,31 @@ export const useBookingStore = create<BookingStore>()(
 
       // ─── Bookings ──────────────────────────────────────────
       bookings: [],
-      setBookings: (bookings) => set({ bookings }),
+      setBookings: (bookings) =>
+        set(() => {
+          const uniqueMap = new Map<string, Booking>();
+          bookings.forEach((b) => {
+            if (b && b.id) {
+              uniqueMap.set(b.id, b);
+            }
+          });
+          return { bookings: Array.from(uniqueMap.values()) };
+        }),
 
       addBooking: (booking) =>
-        set((state) => ({
-          bookings: [booking, ...state.bookings],
-        })),
+        set((state) => {
+          const exists = state.bookings.some((b) => b.id === booking.id);
+          if (exists) {
+            return {
+              bookings: state.bookings.map((b) =>
+                b.id === booking.id ? booking : b
+              ),
+            };
+          }
+          return {
+            bookings: [booking, ...state.bookings],
+          };
+        }),
 
       updateBooking: (bookingId, updates) =>
         set((state) => ({

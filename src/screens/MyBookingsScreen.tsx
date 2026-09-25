@@ -160,7 +160,7 @@ export default function MyBookingsScreen() {
       {/* Bookings List */}
       <FlatList
         data={currentList}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
         renderItem={({ item }) => (
           <BookingCard booking={item} onCancel={handleCancelBooking} onShowQr={setQrBooking} />
         )}
